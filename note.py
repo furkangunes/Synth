@@ -31,19 +31,19 @@ class Note:
 
 class NoteFactory:
     @staticmethod
-    def create_keyboard(octave_number, key_count=20):
+    def create_keyboard(octave_number=4, key_count=20) -> dict:
         """
         Creates 20 notes including sharps
         E.g. A4, A4#, B4, C4, C4#, ..., E6
         """
 
-        keyboard = []
+        keyboard = {}
         freq = 55 * 2 ** (octave_number - 1)
         letter = 'A'
         name = letter + str(octave_number)
 
         for i in range(key_count):
-            keyboard.append(Note(name, freq))
+            keyboard[name] = Note(name, freq)
 
             if i % 12 in (0, 3, 5, 8, 10):
                 name = letter + str(octave_number) + '#'
