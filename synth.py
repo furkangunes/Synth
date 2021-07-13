@@ -7,14 +7,15 @@ from gui import Gui
 
 def main():
     freq = [0]
-    keyboard = NoteFactory.create_keyboard(4)
+    #keyboard = NoteFactory.create_keyboard(4)
 
     lock = threading.RLock()
-    player_thread = threading.Thread(target=lambda: Player().play(freq, lock))
+    player = Player()
+    player_thread = threading.Thread(target=lambda: player.play())
     player_thread.setDaemon(True)
     player_thread.start()
 
-    gui = Gui(freq)
+    gui = Gui(player)
     gui.mainloop()
 
     player_thread.join()

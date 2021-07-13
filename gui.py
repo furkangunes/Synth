@@ -1,11 +1,12 @@
 import tkinter as tk
 from note import Note, NoteFactory
+from player import Player
 
 class Gui(tk.Tk):
-    def __init__(self, freq, *args, **kwargs):
+    def __init__(self, player: Player, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
-        self.freq = freq
+        self.player = player
         self.keyboard = NoteFactory.create_keyboard(key_count=15) # Might change key count
         self.key_dict = self.get_key_dict()
 
@@ -35,7 +36,7 @@ class Gui(tk.Tk):
 
     def change_note(self, note_name):
         print("Called", note_name)
-        self.freq[0] = self.keyboard[note_name].freq
+        self.player.freq = self.keyboard[note_name].freq
 
     def on_press(self, key):
         key_name = key.keysym
@@ -44,7 +45,7 @@ class Gui(tk.Tk):
             self.change_note(self.key_dict[key_name])
 
     def on_release(self, key):
-        self.freq[0] = 0
+        self.player.freq = 0
 
     def set_bindings(self, octave_number=4):
         self.bind("<Key>", self.on_press)
