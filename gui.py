@@ -12,9 +12,6 @@ class Gui(tk.Tk):
 
         self.set_bindings()
 
-        print(self.key_dict)
-        print(self.keyboard)
-
     def get_key_dict(self, octave_number=4):
         return {
             "a": "A" + str(octave_number),
@@ -35,7 +32,7 @@ class Gui(tk.Tk):
         }
 
     def change_note(self, note_name):
-        print("Called", note_name)
+        print("Active Note:", note_name, end="\r")
         self.player.freq = self.keyboard[note_name].freq
 
     def on_press(self, key):
@@ -45,6 +42,7 @@ class Gui(tk.Tk):
             self.change_note(self.key_dict[key_name])
 
     def on_release(self, key):
+        print("No action" + " " * 6, end="\r")
         self.player.freq = 0
 
     def set_bindings(self, octave_number=4):

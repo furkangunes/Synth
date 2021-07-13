@@ -11,7 +11,7 @@ class Player(pyaudio.PyAudio):
         pyaudio.PyAudio.__init__(self)
         self.buffer = np.empty((frames_per_buffer, channels))
         self.phase = 0
-        self.freq = 440.0
+        self.freq = 0.0
         self.frame_rate = frame_rate
         self.ostream = pyaudio.Stream(self, rate=frame_rate, frames_per_buffer=frames_per_buffer, channels=channels, format=format, output=output, stream_callback=self.callback)
 
