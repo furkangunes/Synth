@@ -1,4 +1,5 @@
 import tkinter as tk
+
 from note import Note, NoteFactory
 from player import Player
 

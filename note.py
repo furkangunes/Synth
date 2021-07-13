@@ -1,4 +1,3 @@
-from numpy import sin
 from dataclasses import dataclass
 
 @dataclass
