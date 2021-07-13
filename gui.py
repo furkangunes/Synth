@@ -8,7 +8,7 @@ class Gui(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
 
         self.player = player
-        self.keyboard = NoteFactory.create_keyboard(key_count=15) # Might change key count
+        self.keyboard = NoteFactory.create_keyboard(key_count=20) # Might change key count
         self.key_dict = self.get_key_dict()
 
         self.set_bindings()
@@ -28,8 +28,13 @@ class Gui(tk.Tk):
             "j": "G" + str(octave_number + 1),
             "u": "G" + str(octave_number + 1) + "#",
             "k": "A" + str(octave_number + 1),
-            "o": "A" + str(octave_number + 2) + "#",
+            "ı": "A" + str(octave_number + 1) + "#",
             "l": "B" + str(octave_number + 1),
+            "ş": "C" + str(octave_number + 2),
+            "p": "C" + str(octave_number + 2) + "#",
+            "i": "D" + str(octave_number + 2),
+            "ğ": "D" + str(octave_number + 2) + "#",
+            ",": "E" + str(octave_number + 2)
         }
 
     def change_note(self, note_name):
@@ -37,13 +42,13 @@ class Gui(tk.Tk):
         self.player.freq = self.keyboard[note_name].freq
 
     def on_press(self, key):
-        key_name = key.keysym
+        key_name = key.char
 
         if key_name in self.key_dict:
             self.change_note(self.key_dict[key_name])
 
     def on_release(self, key):
-        print("No action" + " " * 6, end="\r")
+        print("No action" + " " * 7, end="\r")
         self.player.freq = 0
 
     def set_bindings(self, octave_number=4):
