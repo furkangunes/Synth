@@ -21,19 +21,18 @@ class Gui(tk.Tk):
         self.key_dict = self.get_key_dict()
         self.button_dict = dict.fromkeys(self.key_dict.keys())
 
-        self.explanation = "Press keys to play sound"
-
         self.header = tk.Frame(master=self, width=200, height=100)
         self.keyboard_frame = tk.Frame(master=self, width=200, height=100)
         self.footer = tk.Frame(master=self, width=200, height=100, bg="blue")
+
+        self.detail = "Press keys to play sound"
+        self.detail_label = None
 
         self.configure_frames()
         self.configure_keyboard_frame()
 
         self.set_bindings()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
-
-        #print("No action" + " " * 7, end="\r")
 
     def configure_frames(self):
         self.title("Synthesizer")
@@ -46,7 +45,8 @@ class Gui(tk.Tk):
         self.minsize(self.winfo_width(), self.winfo_height())
 
         tk.Label(master=self.header, text="Synthesizer", bg="red").grid(row=0, sticky="NSEW")
-        tk.Label(master=self.header, text=self.explanation).grid(row=1, sticky="NSEW")
+        self.detail_label = tk.Label(master=self.header, text=self.detail)
+        self.detail_label.grid(row=1, sticky="NSEW")
 
         tk.Label(master=self.footer, text=GIT_LINK, bg="red").grid(row=0)
 
@@ -70,7 +70,7 @@ class Gui(tk.Tk):
             )
             button.grid(row=0, column=i)
 
-            self.button_dict[key] = button
+            self.button_dict[key] = {"button": button, "color": MAIN_NOTE_COLOR}
 
         self.update()    
         button_width = button.winfo_width()
@@ -89,7 +89,7 @@ class Gui(tk.Tk):
             )
 
             sharp_buttons.append(button)
-            self.button_dict[key] = button
+            self.button_dict[key] = {"button": button, "color": SHARP_NOTE_COLOR}
 
         # Below is hard coded :(
         sharp_buttons[0].place(x=button_width - 25)
@@ -126,24 +126,32 @@ class Gui(tk.Tk):
         }
 
     def activate_note(self, note_name):
-        #print("Active Note:", note_name, end="\r")
         self.player.freq = self.keyboard[note_name].freq
+        self.detail_label.config(text=f"{self.player.freq:.2f}" + " Hz")
 
     def on_press(self, key):
         key_name = key.char.lower()
 
+        # Tk gets special chars at press but on release, so save duplicate of special char with keycode
+        if key.keysym == "??":
+            self.key_dict[key.keycode] = self.key_dict[key_name]
+            self.button_dict[key.keycode] = self.button_dict[key_name]
+
         if key_name in self.key_dict:
-            self.button_dict[key_name]["bg"] = "red"
+            self.button_dict[key_name]["button"]["bg"] = "red"
             self.activate_note(self.key_dict[key_name])
 
     def on_release(self, key):
-        #print("No action" + " " * 7, end="\r")
+        self.detail_label.config(text="0.0 Hz")
 
-        key_name = key.char#.lower()
+        if key.keysym == "??":
+            key_name = key.keycode
+        else:
+            key_name = key.char.lower()
 
-        print(key)
         if key_name in self.button_dict:
-            self.button_dict[key_name]["bg"] = MAIN_NOTE_COLOR if key_name in "asdfghjklşi," else SHARP_NOTE_COLOR
+            button, color = self.button_dict[key_name].values()
+            button["bg"] = color
 
         self.player.freq = 0
 
