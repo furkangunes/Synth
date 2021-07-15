@@ -28,7 +28,7 @@ class Player(pyaudio.PyAudio):
     def play(self):
         self.ostream.start_stream()
 
-        while self.ostream.is_active() and not self.should_stop:
+        while not self.should_stop and self.ostream.is_active():
             sleep(0.1)
 
         self.ostream.stop_stream()
