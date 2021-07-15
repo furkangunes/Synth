@@ -26,13 +26,15 @@ class Gui(tk.Tk):
         self.footer = tk.Frame(master=self, width=200, height=100, bg="blue")
 
         self.detail = "Press keys to play sound"
-        self.detail_label = None
+        self.detail_label: tk.Label
 
         self.configure_frames()
         self.configure_keyboard_frame()
 
         self.set_bindings()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+
+        self.resizable(False, False)
 
     def configure_frames(self):
         self.title("Synthesizer")
@@ -42,7 +44,6 @@ class Gui(tk.Tk):
         self.footer.grid(row=2)
 
         self.update()
-        self.minsize(self.winfo_width(), self.winfo_height())
 
         tk.Label(master=self.header, text="Synthesizer", bg="red").grid(row=0, sticky="NSEW")
         self.detail_label = tk.Label(master=self.header, text=self.detail)
@@ -51,9 +52,6 @@ class Gui(tk.Tk):
         tk.Label(master=self.footer, text=GIT_LINK, bg="red").grid(row=0)
 
     def configure_keyboard_frame(self):
-        # for i in range(6):
-        #     tk.Button(master=self.keyboard_frame, width=5, height=20, bg=SHARP_NOTE_COLOR, highlightthickness=True).place(x=i*5 + 10, y=0)
-
         button_width: int
 
         for i, key in zip(range(12), "asdfghjklşi,"):
