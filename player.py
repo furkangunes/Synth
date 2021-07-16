@@ -46,7 +46,7 @@ class Player(pyaudio.PyAudio):
         self.phase = 0
         self.freq = 0.0
         self.osc = Osc()
-        self.osc.active_function = self.osc.saw_wave
+        self.osc.active_function = self.osc.sin_wave
 
         self.frame_rate = frame_rate
         self.ostream = pyaudio.Stream(self, rate=frame_rate, frames_per_buffer=frames_per_buffer, channels=channels, format=format, output=output, stream_callback=self.callback)

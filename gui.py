@@ -17,7 +17,7 @@ class Gui(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
 
         self.player = player
-        self.octave_number = 3
+        self.octave_number = 4
         self.keyboard = NoteFactory.create_keyboard(octave_number=self.octave_number, key_count=20) # Might change key count
         self.key_dict = self.get_key_dict()
         self.button_dict = dict.fromkeys(self.key_dict.keys())
