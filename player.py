@@ -1,5 +1,6 @@
 import numpy as np
 import pyaudio
+from dataclasses import dataclass
 #from threading import RLock
 import threading
 from time import sleep
@@ -12,28 +13,30 @@ class Osc():
     def __init__(self):
         self.active_function: self.sin_wave
 
-    def sin_wave(self, phase, amplitude):
+    def sin_wave(self, phase, amplitude, f=0.0):
         # Return original sin wave
         return amplitude * np.sin(phase)
 
-    def sqr_wave(self, phase, amplitude):
+    def sqr_wave(self, phase, amplitude, f=0.0):
         # Return square shaped sin wave, which only alters between -1 and 1
         return np.sign(self.sin_wave(phase, amplitude))
 
-    def tri_wave(self, phase, amplitude):
+    def tri_wave(self, phase, amplitude, f=0.0):
         # Return triangular shaped sin wave, which forms a triangle over sin wave by its peak values
         return 2.0 * amplitude / np.pi * np.arcsin(self.sin_wave(phase, amplitude))
 
-    def saw_wave(self, phase, amplitude):
+    def saw_wave(self, phase, amplitude, f):
         # Returns a saw tooth shaped cummulatively sampled sin waves
-        f = 440.0
+        if f == 0.0:
+            return 0.0
+
         t = phase / (2.0 * np.pi * f)
 
         return 2.0 * amplitude / np.pi * (f * np.pi * (t % (1.0 / f)) - np.pi / 2.0)
 
-    def __call__(self, phase, amplitude):
+    def __call__(self, phase, amplitude, f=0.0):
         # Call object directly with phase and amplitude (osc = Osc(); osc(phase, amplitude))
-        return self.active_function(phase, amplitude)
+        return self.active_function(phase, amplitude, f)
 
 class Player(pyaudio.PyAudio):
     """
@@ -46,7 +49,7 @@ class Player(pyaudio.PyAudio):
         self.phase = 0
         self.freq = 0.0
         self.osc = Osc()
-        self.osc.active_function = self.osc.sin_wave
+        self.osc.active_function = self.osc.saw_wave
 
         self.frame_rate = frame_rate
         self.ostream = pyaudio.Stream(self, rate=frame_rate, frames_per_buffer=frames_per_buffer, channels=channels, format=format, output=output, stream_callback=self.callback)
@@ -56,7 +59,7 @@ class Player(pyaudio.PyAudio):
     def callback(self, in_data, frame_count, time_info, status):
         for i in range(frame_count):
             self.phase += 2 * np.pi * self.freq / self.frame_rate
-            self.buffer[i] = self.osc(self.phase, self.amplitude)
+            self.buffer[i] = self.osc(self.phase, self.amplitude, self.freq)
 
         return (self.buffer, pyaudio.paContinue)
 
