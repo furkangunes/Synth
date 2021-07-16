@@ -11,6 +11,9 @@ class Timer:
         self.time = 0.0
         self.step_size = 1.0 / frame_rate
 
+    def now(self):
+        return self.time
+
     def tick(self):
         self.time += self.step_size
 
@@ -26,8 +29,11 @@ class Player(pyaudio.PyAudio):
         pyaudio.PyAudio.__init__(self)
         self.buffer = np.zeros((frames_per_buffer, channels), dtype=np.float32)
         self.amplitude = 1.0
-        self.phase = 0
+        #self.phase = 0
         self.notes = []
+        #self.freq = 0.0
+
+        self.timer = Timer(frame_rate)
 
         self.osc = Osc()
         self.osc.active_function = self.osc.sin_wave
@@ -42,17 +48,18 @@ class Player(pyaudio.PyAudio):
 
     def callback(self, in_data, frame_count, time_info, status):
         if len(self.notes) == 0:
-            self.buffer.fill(0.0)
+             self.buffer.fill(0.0)
+             self.timer.wind(frame_count)
         else:
+            print(self.notes)
             for i in range(frame_count):
-                # TODO: Change freq to notes' total calculated freq
-                self.phase += 2 * np.pi * self.freq / self.frame_rate
-                self.buffer[i] = self.osc(self.phase, self.amplitude, self.freq)
+                self.buffer[i] = self.osc(self.notes, self.timer.now(), self.amplitude)
+                self.timer.tick()
 
                 #self.buffer[i] = self.amplitude * np.sin(2 * np.pi * self.t * self.freq / self.frame_rate)
                 #self.t += 1
 
-            return (self.buffer, pyaudio.paContinue)
+        return (self.buffer, pyaudio.paContinue)
 
     def play(self):
         self.ostream.start_stream()

@@ -125,8 +125,18 @@ class Gui(tk.Tk):
         }
 
     def activate_note(self, note_name):
-        self.player.freq = self.keyboard[note_name].freq
-        self.detail_label.config(text=f"{self.player.freq:.2f}" + " Hz")
+        note = self.keyboard[note_name]
+
+        if note not in self.player.notes:
+            self.player.notes.append(self.keyboard[note_name])
+            
+        self.detail_label.config(text="DO NOT FORGET TO REMOVE ME")
+
+    def deactivate_note(self, note_name):
+        note = self.keyboard[note_name]
+
+        if note in self.player.notes: # Extra guard
+            self.player.notes.remove(note)
 
     def on_press(self, key):
         key_name = key.char.lower()
@@ -152,7 +162,8 @@ class Gui(tk.Tk):
             button, color = self.button_dict[key_name].values()
             button["bg"] = color
 
-        self.player.freq = 0
+        #self.player.freq = 0
+        self.deactivate_note(self.key_dict[key_name])
 
     def on_close(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
