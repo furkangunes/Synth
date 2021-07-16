@@ -7,12 +7,12 @@ from gui import Gui
 def main():
     lock = threading.RLock()
     
-    player = Player()
+    player = Player(lock=lock)
     player_thread = threading.Thread(target=lambda: player.play())
     player_thread.setDaemon(True)
     player_thread.start()
 
-    Gui(player).mainloop()
+    Gui(player, lock=lock).mainloop()
 
     player_thread.join()
 

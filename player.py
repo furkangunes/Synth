@@ -1,7 +1,6 @@
 import numpy as np
 import pyaudio
-#from threading import RLock
-import threading
+from threading import RLock
 from time import sleep
 
 from modulators import Env, Osc
@@ -25,13 +24,15 @@ class Player(pyaudio.PyAudio):
     """
     Plays continously what is inside its buffer (with play method)
     """
-    def __init__(self, *, frames_per_buffer=1024, frame_rate=44100, channels=1, format=pyaudio.paFloat32, output=True):
+    def __init__(self, *, lock: RLock, frames_per_buffer=1024, frame_rate=44100, channels=1, format=pyaudio.paFloat32, output=True):
         pyaudio.PyAudio.__init__(self)
         self.buffer = np.zeros((frames_per_buffer, channels), dtype=np.float32)
         self.amplitude = 1.0
         #self.phase = 0
         self.notes = []
         #self.freq = 0.0
+
+        self.lock = lock
 
         self.timer = Timer(frame_rate)
 
@@ -44,20 +45,20 @@ class Player(pyaudio.PyAudio):
         self.ostream = pyaudio.Stream(self, rate=frame_rate, frames_per_buffer=frames_per_buffer, channels=channels, format=format, output=output, stream_callback=self.callback)
 
         self.should_stop = False
-        self.t = 0
 
     def callback(self, in_data, frame_count, time_info, status):
-        if len(self.notes) == 0:
-             self.buffer.fill(0.0)
-             self.timer.wind(frame_count)
-        else:
-            print(self.notes)
-            for i in range(frame_count):
-                self.buffer[i] = self.osc(self.notes, self.timer.now(), self.amplitude)
-                self.timer.tick()
+        with self.lock:
+            if len(self.notes) == 0:
+                self.buffer.fill(0.0)
+                self.timer.wind(frame_count)
+            else:
+                print(self.notes)
+                for i in range(frame_count):
+                    self.buffer[i] = self.osc(self.notes, self.timer.now(), self.amplitude)
+                    self.timer.tick()
 
-                #self.buffer[i] = self.amplitude * np.sin(2 * np.pi * self.t * self.freq / self.frame_rate)
-                #self.t += 1
+                    #self.buffer[i] = self.amplitude * np.sin(2 * np.pi * self.t * self.freq / self.frame_rate)
+                    #self.t += 1
 
         return (self.buffer, pyaudio.paContinue)
 
@@ -70,12 +71,12 @@ class Player(pyaudio.PyAudio):
         self.ostream.stop_stream()
         self.ostream.close()
 
-if __name__ == "__main__":
-    player = Player()
-    t = threading.Thread(target=player.play())
-    t.start()
+# if __name__ == "__main__":
+#     player = Player()
+#     t = threading.Thread(target=player.play())
+#     t.start()
 
-    #input()
-    player.should_stop = True
-    t.join()
-    player.terminate()
+#     #input()
+#     player.should_stop = True
+#     t.join()
+#     player.terminate()
