@@ -7,9 +7,10 @@ from time import sleep
 # TODO: Try to generalize magic numbers
 
 class Player(pyaudio.PyAudio):
-    def __init__(self, *, frames_per_buffer=1024, frame_rate=44100, channels=1, format=pyaudio.paInt32, output=True):
+    def __init__(self, *, frames_per_buffer=1024, frame_rate=44100, channels=1, format=pyaudio.paFloat32, output=True):
         pyaudio.PyAudio.__init__(self)
-        self.buffer = np.empty((frames_per_buffer, channels))
+        self.buffer = np.zeros((frames_per_buffer, channels), dtype=np.float32)
+        self.volume = 1.0
         self.phase = 0
         self.freq = 0.0
         self.frame_rate = frame_rate
@@ -20,8 +21,8 @@ class Player(pyaudio.PyAudio):
     def callback(self, in_data, frame_count, time_info, status):
         # TODO: Adjust according to channels
         for i in range(frame_count):
-            self.buffer[i] = int(32767 * 0.5 * np.sin(self.phase))
             self.phase += 2 * np.pi * self.freq / self.frame_rate
+            self.buffer[i] = self.volume * np.sin(self.phase)
 
         return (self.buffer, pyaudio.paContinue)
 
