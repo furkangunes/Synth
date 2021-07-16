@@ -25,9 +25,11 @@ class Osc():
         return 2.0 * amplitude / np.pi * np.arcsin(self.sin_wave(phase, amplitude))
 
     def saw_wave(self, phase, amplitude):
-        # TODO: Finish
         # Returns a saw tooth shaped cummulatively sampled sin waves
-        return 2.0 * amplitude / np.pi
+        f = 440.0
+        t = phase / (2.0 * np.pi * f)
+
+        return 2.0 * amplitude / np.pi * (f * np.pi * (t % (1.0 / f)) - np.pi / 2.0)
 
     def __call__(self, phase, amplitude):
         # Call object directly with phase and amplitude (osc = Osc(); osc(phase, amplitude))
@@ -44,7 +46,7 @@ class Player(pyaudio.PyAudio):
         self.phase = 0
         self.freq = 0.0
         self.osc = Osc()
-        self.osc.active_function = self.osc.tri_wave
+        self.osc.active_function = self.osc.saw_wave
 
         self.frame_rate = frame_rate
         self.ostream = pyaudio.Stream(self, rate=frame_rate, frames_per_buffer=frames_per_buffer, channels=channels, format=format, output=output, stream_callback=self.callback)

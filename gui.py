@@ -17,7 +17,8 @@ class Gui(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
 
         self.player = player
-        self.keyboard = NoteFactory.create_keyboard(key_count=20) # Might change key count
+        self.octave_number = 3
+        self.keyboard = NoteFactory.create_keyboard(octave_number=self.octave_number, key_count=20) # Might change key count
         self.key_dict = self.get_key_dict()
         self.button_dict = dict.fromkeys(self.key_dict.keys())
 
@@ -99,28 +100,28 @@ class Gui(tk.Tk):
         sharp_buttons[6].place(x=button_width * 10 - 25)
         sharp_buttons[7].place(x=button_width * 11 - 25)
 
-    def get_key_dict(self, octave_number=4):
+    def get_key_dict(self):
         return {
-            "a": "A" + str(octave_number),
-            "w": "A" + str(octave_number) + "#",
-            "s": "B" + str(octave_number),
-            "d": "C" + str(octave_number + 1),
-            "e": "C" + str(octave_number + 1) + "#",
-            "f": "D" + str(octave_number + 1),
-            "r": "D" + str(octave_number + 1) + "#",
-            "g": "E" + str(octave_number + 1),
-            "h": "F" + str(octave_number + 1),
-            "y": "F" + str(octave_number + 1) + "#",
-            "j": "G" + str(octave_number + 1),
-            "u": "G" + str(octave_number + 1) + "#",
-            "k": "A" + str(octave_number + 1),
-            "ı": "A" + str(octave_number + 1) + "#",
-            "l": "B" + str(octave_number + 1),
-            "ş": "C" + str(octave_number + 2),
-            "p": "C" + str(octave_number + 2) + "#",
-            "i": "D" + str(octave_number + 2),
-            "ğ": "D" + str(octave_number + 2) + "#",
-            ",": "E" + str(octave_number + 2)
+            "a": "A" + str(self.octave_number),
+            "w": "A" + str(self.octave_number) + "#",
+            "s": "B" + str(self.octave_number),
+            "d": "C" + str(self.octave_number + 1),
+            "e": "C" + str(self.octave_number + 1) + "#",
+            "f": "D" + str(self.octave_number + 1),
+            "r": "D" + str(self.octave_number + 1) + "#",
+            "g": "E" + str(self.octave_number + 1),
+            "h": "F" + str(self.octave_number + 1),
+            "y": "F" + str(self.octave_number + 1) + "#",
+            "j": "G" + str(self.octave_number + 1),
+            "u": "G" + str(self.octave_number + 1) + "#",
+            "k": "A" + str(self.octave_number + 1),
+            "ı": "A" + str(self.octave_number + 1) + "#",
+            "l": "B" + str(self.octave_number + 1),
+            "ş": "C" + str(self.octave_number + 2),
+            "p": "C" + str(self.octave_number + 2) + "#",
+            "i": "D" + str(self.octave_number + 2),
+            "ğ": "D" + str(self.octave_number + 2) + "#",
+            ",": "E" + str(self.octave_number + 2)
         }
 
     def activate_note(self, note_name):
