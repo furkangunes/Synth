@@ -1,42 +1,10 @@
 import numpy as np
 import pyaudio
-from dataclasses import dataclass
 #from threading import RLock
 import threading
 from time import sleep
 
-class Osc():
-    """
-    An oscillator to get more interesting sin waves
-    """
-
-    def __init__(self):
-        self.active_function: self.sin_wave
-
-    def sin_wave(self, phase, amplitude, f=0.0):
-        # Return original sin wave
-        return amplitude * np.sin(phase)
-
-    def sqr_wave(self, phase, amplitude, f=0.0):
-        # Return square shaped sin wave, which only alters between -1 and 1
-        return np.sign(self.sin_wave(phase, amplitude))
-
-    def tri_wave(self, phase, amplitude, f=0.0):
-        # Return triangular shaped sin wave, which forms a triangle over sin wave by its peak values
-        return 2.0 * amplitude / np.pi * np.arcsin(self.sin_wave(phase, amplitude))
-
-    def saw_wave(self, phase, amplitude, f):
-        # Returns a saw tooth shaped cummulatively sampled sin waves
-        if f == 0.0:
-            return 0.0
-
-        t = phase / (2.0 * np.pi * f)
-
-        return 2.0 * amplitude / np.pi * (f * np.pi * (t % (1.0 / f)) - np.pi / 2.0)
-
-    def __call__(self, phase, amplitude, f=0.0):
-        # Call object directly with phase and amplitude (osc = Osc(); osc(phase, amplitude))
-        return self.active_function(phase, amplitude, f)
+from modulators import Env, Osc
 
 class Player(pyaudio.PyAudio):
     """
@@ -47,21 +15,32 @@ class Player(pyaudio.PyAudio):
         self.buffer = np.zeros((frames_per_buffer, channels), dtype=np.float32)
         self.amplitude = 1.0
         self.phase = 0
-        self.freq = 0.0
+        self.notes = []
+
         self.osc = Osc()
-        self.osc.active_function = self.osc.saw_wave
+        self.osc.active_function = self.osc.sin_wave
+
+        self.env = Env(sustain_amplitude=0.5)
 
         self.frame_rate = frame_rate
         self.ostream = pyaudio.Stream(self, rate=frame_rate, frames_per_buffer=frames_per_buffer, channels=channels, format=format, output=output, stream_callback=self.callback)
 
         self.should_stop = False
+        self.t = 0
 
     def callback(self, in_data, frame_count, time_info, status):
-        for i in range(frame_count):
-            self.phase += 2 * np.pi * self.freq / self.frame_rate
-            self.buffer[i] = self.osc(self.phase, self.amplitude, self.freq)
+        if len(self.notes) == 0:
+            self.buffer.fill(0.0)
+        else:
+            for i in range(frame_count):
+                # TODO: Change freq to notes' total calculated freq
+                self.phase += 2 * np.pi * self.freq / self.frame_rate
+                self.buffer[i] = self.osc(self.phase, self.amplitude, self.freq)
 
-        return (self.buffer, pyaudio.paContinue)
+                #self.buffer[i] = self.amplitude * np.sin(2 * np.pi * self.t * self.freq / self.frame_rate)
+                #self.t += 1
+
+            return (self.buffer, pyaudio.paContinue)
 
     def play(self):
         self.ostream.start_stream()

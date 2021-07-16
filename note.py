@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from modulators import Env
+
 @dataclass
 class Note:
     name: str
