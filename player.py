@@ -6,6 +6,18 @@ from time import sleep
 
 from modulators import Env, Osc
 
+class Timer:
+    def __init__(self, frame_rate):
+        self.time = 0.0
+        self.step_size = 1.0 / frame_rate
+
+    def tick(self):
+        self.time += self.step_size
+
+    def wind(self, amount):
+        # Fast forward in case of no note being played
+        self.time += amount * self.step_size
+
 class Player(pyaudio.PyAudio):
     """
     Plays continously what is inside its buffer (with play method)
