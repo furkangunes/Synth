@@ -12,10 +12,10 @@ class Env:
 
     def __init__(self, step_size, amplitude):
         # TODO: Adjust timings accourding to player timer
-        self.attack_time = 10000 * step_size
-        self.decay_time = 10000 * step_size
-        self.sustain_amplitude = amplitude * 0.5
-        self.release_time = 10000 * step_size
+        self.attack_time = 0 * step_size
+        self.decay_time = 0 * step_size
+        self.sustain_amplitude = amplitude * 0.8
+        self.release_time = 0 * step_size
 
     def __call__(self, note: Note, time, amplitude): # Amplitude is the max amp, a.k.a. volume
         if time > note.release_time:
@@ -24,7 +24,9 @@ class Env:
                 note.is_active = False
                 return 0.0
 
-            return self.sustain_amplitude * (1.0 - (time - note.release_time) / self.release_time)
+            if time > note.press_time + self.attack_time + self.decay_time:
+                return self.sustain_amplitude * (1.0 - (time - note.release_time) / self.release_time)
+            return self(note, time, amplitude) * (1.0 - (time - note.release_time) / self.release_time)
 
         if time < note.press_time + self.attack_time:
             return amplitude * (time - note.press_time) / self.attack_time

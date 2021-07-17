@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+
 from note import Note, NoteFactory
 from player import Player
 

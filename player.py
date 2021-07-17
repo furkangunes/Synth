@@ -1,6 +1,5 @@
 import numpy as np
 import pyaudio
-from threading import RLock
 from time import sleep
 
 from modulators import Env, Osc
@@ -56,18 +55,24 @@ class Player(pyaudio.PyAudio):
                 j = 0
                 while j < len(self.notes):
                     note = self.notes[j]
+
                     amp = self.env(note, self.timer.now(), self.amplitude)
 
                     if not note.is_active:
                         del self.notes[j]
                     else:
-                        print(amp)
                         output += self.osc(note, self.timer.now(), amp)
                         j += 1
-                        
 
                 self.buffer[i] = output
                 self.timer.tick()
+
+            i = 0
+            while i < len(self.notes):
+                if not self.notes[i].is_active:
+                    del self.notes[i]
+                else:
+                    i += 1
 
         return self.buffer, pyaudio.paContinue
 
