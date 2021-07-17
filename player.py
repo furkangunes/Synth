@@ -52,15 +52,21 @@ class Player(pyaudio.PyAudio):
 
                 # Traverse by index with while loop to be able to remove note while traversing
                 j = 0
+                amps = []
                 while j < len(self.notes):
                     note = self.notes[j]
 
-                    amp = self.env(note, self.timer.now(), self.amplitude) / len(self.notes)
+                    amp = self.env(note, self.timer.now(), self.amplitude)
                     if not note.is_active:
                         del self.notes[j]
                     else:
-                        output += self.osc(note, self.timer.now(), amp)
+                        amps.append(amp)
                         j += 1
+
+                amps = [amp / len(amps) for amp in amps]
+
+                for note in self.notes:
+                    output += self.osc(note, self.timer.now(), amps[self.notes.index(note)])
 
                 self.buffer[i] = output
                 self.timer.tick()
@@ -75,13 +81,3 @@ class Player(pyaudio.PyAudio):
 
         self.ostream.stop_stream()
         self.ostream.close()
-
-# if __name__ == "__main__":
-#     player = Player()
-#     t = threading.Thread(target=player.play())
-#     t.start()
-
-#     #input()
-#     player.should_stop = True
-#     t.join()
-#     player.terminate()
