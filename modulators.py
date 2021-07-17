@@ -12,32 +12,25 @@ class Env:
 
     def __init__(self, step_size, amplitude):
         # TODO: Adjust timings accourding to player timer
-        self.attack_time = 0.5 * step_size
-        self.decay_time = 0.5 * step_size
-        self.sustain_amplitude = amplitude * 0.8
-        self.release_time = 100 * step_size
+        self.attack_time = 10000 * step_size
+        self.decay_time = 10000 * step_size
+        self.sustain_amplitude = amplitude * 0.5
+        self.release_time = 10000 * step_size
 
     def __call__(self, note: Note, time, amplitude): # Amplitude is the max amp, a.k.a. volume
         if time > note.release_time:
             if time - note.release_time > self.release_time:
                 note.release_time = inf
+                note.is_active = False
                 return 0.0
 
             return self.sustain_amplitude * (1.0 - (time - note.release_time) / self.release_time)
 
         if time < note.press_time + self.attack_time:
-            print("Attack")
-            print()
-            print("Time:", time)
-            print("Press time:", note.press_time)
-            print("Attack time:", self.attack_time)
-            print()
             return amplitude * (time - note.press_time) / self.attack_time
         elif time < note.press_time + self.attack_time + self.decay_time:
-            print("Decay")
             return amplitude * (1.0 - (time - note.press_time - self.attack_time) / self.decay_time)
         else:
-            print("Sustain")
             return self.sustain_amplitude
 
 class Osc():

@@ -128,7 +128,7 @@ class Gui(tk.Tk):
 
         if note not in self.player.notes:
             note.press_time = self.player.timer.now()
-            #note.is_active = True
+            note.is_active = True
             self.player.notes.append(self.keyboard[note_name])
                 
         self.detail_label.config(text="DO NOT FORGET TO REMOVE ME")

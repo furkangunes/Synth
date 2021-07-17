@@ -58,7 +58,7 @@ class Player(pyaudio.PyAudio):
                     note = self.notes[j]
                     amp = self.env(note, self.timer.now(), self.amplitude)
 
-                    if amp == 0.0:
+                    if not note.is_active:
                         del self.notes[j]
                     else:
                         print(amp)
