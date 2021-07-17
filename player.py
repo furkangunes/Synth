@@ -56,8 +56,7 @@ class Player(pyaudio.PyAudio):
                 while j < len(self.notes):
                     note = self.notes[j]
 
-                    amp = self.env(note, self.timer.now(), self.amplitude)
-
+                    amp = self.env(note, self.timer.now(), self.amplitude) / len(self.notes)
                     if not note.is_active:
                         del self.notes[j]
                     else:
