@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import messagebox
-from threading import RLock
 from note import Note, NoteFactory
 from player import Player
 
@@ -13,11 +12,10 @@ MAIN_NOTE_COLOR = "orange"
 SHARP_NOTE_COLOR = "black"
 
 class Gui(tk.Tk):
-    def __init__(self, player: Player, lock: RLock, *args, **kwargs):
+    def __init__(self, player: Player, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
         self.player = player
-        self.lock = lock
         self.octave_number = 4
         self.keyboard = NoteFactory.create_keyboard(octave_number=self.octave_number, key_count=20) # Might change key count
         self.key_dict = self.get_key_dict()
@@ -128,20 +126,22 @@ class Gui(tk.Tk):
     def activate_note(self, note_name):
         note = self.keyboard[note_name]
 
-        with self.lock:
-            if note not in self.player.notes:
-                self.player.notes.append(self.keyboard[note_name])
+        if note not in self.player.notes:
+            note.press_time = self.player.timer.now()
+            #note.is_active = True
+            self.player.notes.append(self.keyboard[note_name])
                 
         self.detail_label.config(text="DO NOT FORGET TO REMOVE ME")
 
     def deactivate_note(self, note_name):
         note = self.keyboard[note_name]
 
-        with self.lock:
-            if note in self.player.notes: # Extra guard
-                self.player.notes.remove(note)
+        if note in self.player.notes: # Extra guard
+            note.release_time = self.player.timer.now()
+            #note.is_active = False
 
     def on_press(self, key):
+        # TODO: It keeps activating note on key hold or, activate note appends and envelope removes immediately
         key_name = key.char.lower()
 
         # Tk gets special chars at press but on release, so save duplicate of special char with keycode

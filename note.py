@@ -1,14 +1,13 @@
 from dataclasses import dataclass
-
-from modulators import Env
+from math import inf
 
 @dataclass
 class Note:
     name: str
     freq: float
     press_time = 0
-    release_time = 0
-    active = False
+    release_time = inf
+    is_active = False
 
     @classmethod
     def from_name(cls: type, name: str):
@@ -29,6 +28,13 @@ class Note:
         freq = A_freq * 2 ** power
 
         return cls(name, freq, None, None)
+
+    def print(self):
+        print(self.name)
+        print(self.freq)
+        print(self.press_time)
+        print(self.release_time)
+        print(self.is_active)
 
 class NoteFactory:
     @staticmethod

@@ -1,27 +1,43 @@
 import numpy as np
 from dataclasses import dataclass
 from time import time
+from math import inf
 
-@dataclass
+from note import Note
+
 class Env:
     """
     Envelope to get better sound experience, mimic real instruments maybe
     """
 
-    # TODO: Adjust timings
-    attack_time = 0.5
-    decay_time = 0.5
-    sustain_amplitude: float
-    release_time = 0.5
+    def __init__(self, step_size, amplitude):
+        # TODO: Adjust timings accourding to player timer
+        self.attack_time = 0.5 * step_size
+        self.decay_time = 0.5 * step_size
+        self.sustain_amplitude = amplitude * 0.8
+        self.release_time = 100 * step_size
 
-    start_time = time()
+    def __call__(self, note: Note, time, amplitude): # Amplitude is the max amp, a.k.a. volume
+        if time > note.release_time:
+            if time - note.release_time > self.release_time:
+                note.release_time = inf
+                return 0.0
 
-    def __call__(self, time, amplitude):
-        if time < self.attack_time:
-            return amplitude * (time - self.start_time) / self.attack_time
-        elif time < self.decay_time:
-            return amplitude * (1 - (time - self.start_time - self.attack_time) / self.decay_time)
+            return self.sustain_amplitude * (1.0 - (time - note.release_time) / self.release_time)
+
+        if time < note.press_time + self.attack_time:
+            print("Attack")
+            print()
+            print("Time:", time)
+            print("Press time:", note.press_time)
+            print("Attack time:", self.attack_time)
+            print()
+            return amplitude * (time - note.press_time) / self.attack_time
+        elif time < note.press_time + self.attack_time + self.decay_time:
+            print("Decay")
+            return amplitude * (1.0 - (time - note.press_time - self.attack_time) / self.decay_time)
         else:
+            print("Sustain")
             return self.sustain_amplitude
 
 class Osc():
@@ -32,29 +48,25 @@ class Osc():
     def __init__(self):
         self.active_function: self.sin_wave
 
-    def sin_wave(self, notes, time, amplitude):
+    def sin_wave(self, note, time, amplitude):
         # Return original sin wave
-        return amplitude * sum(np.sin(2.0 * np.pi * note.freq * time) for note in notes)
+        return amplitude * np.sin(2.0 * np.pi * note.freq * time)
 
-    def sqr_wave(self, notes, time, amplitude):
+    def sqr_wave(self, note, time, amplitude):
         # Return square shaped sin wave, which only alters between -1 and 1
-        return amplitude * sum(np.sign(np.sin(2.0 * np.pi * note.freq * time)) for note in notes)
+        return amplitude * np.sign(np.sin(2.0 * np.pi * note.freq * time))
 
-    def tri_wave(self, notes, time, amplitude):
+    def tri_wave(self, note, time, amplitude):
         # Return triangular shaped sin wave, which forms a triangle over sin wave by its peak values
-        return 2.0 * amplitude / np.pi * sum(np.arcsin(np.sin(2.0 * np.pi * note.freq * time)) for note in notes)
+        return 2.0 * amplitude / np.pi * np.arcsin(np.sin(2.0 * np.pi * note.freq * time))
 
-    def saw_wave(self, notes, time, amplitude):
+    def saw_wave(self, note, time, amplitude):
         # Returns a saw tooth shaped cummulatively sampled sin waves
+        if note.freq == 0.0:
+            return 0.0
 
-        # Do explicit for loop to prevent possible div by zero
-        val = 0.0
-        for note in notes:
-            if note.freq != 0.0:
-               val += note.freq * np.pi * (time % (1.0 / note.freq)) - np.pi / 2.0
+        return 2.0 * amplitude / np.pi * (note.freq * np.pi * (time % (1.0 / note.freq)) - np.pi / 2.0)
 
-        return 2.0 * amplitude / np.pi * val
-
-    def __call__(self, notes, time, amplitude):
+    def __call__(self, note, time, amplitude):
         # Call object directly with phase and amplitude (osc = Osc(); osc(phase, amplitude))
-        return self.active_function(notes, time, amplitude)
+        return self.active_function(note, time, amplitude)

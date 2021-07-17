@@ -24,22 +24,19 @@ class Player(pyaudio.PyAudio):
     """
     Plays continously what is inside its buffer (with play method)
     """
-    def __init__(self, *, lock: RLock, frames_per_buffer=1024, frame_rate=44100, channels=1, format=pyaudio.paFloat32, output=True):
+    def __init__(self, *, frames_per_buffer=1024, frame_rate=44100, channels=1, format=pyaudio.paFloat32, output=True):
         pyaudio.PyAudio.__init__(self)
         self.buffer = np.zeros((frames_per_buffer, channels), dtype=np.float32)
         self.amplitude = 1.0
-        #self.phase = 0
-        self.notes = []
-        #self.freq = 0.0
 
-        self.lock = lock
+        self.notes = []
 
         self.timer = Timer(frame_rate)
 
         self.osc = Osc()
         self.osc.active_function = self.osc.sin_wave
 
-        self.env = Env(sustain_amplitude=0.5)
+        self.env = Env(step_size=self.timer.step_size, amplitude=0.5)
 
         self.frame_rate = frame_rate
         self.ostream = pyaudio.Stream(self, rate=frame_rate, frames_per_buffer=frames_per_buffer, channels=channels, format=format, output=output, stream_callback=self.callback)
@@ -47,20 +44,32 @@ class Player(pyaudio.PyAudio):
         self.should_stop = False
 
     def callback(self, in_data, frame_count, time_info, status):
-        with self.lock:
-            if len(self.notes) == 0:
-                self.buffer.fill(0.0)
-                self.timer.wind(frame_count)
-            else:
-                print(self.notes)
-                for i in range(frame_count):
-                    self.buffer[i] = self.osc(self.notes, self.timer.now(), self.amplitude)
-                    self.timer.tick()
+        if len(self.notes) == 0:
+            self.buffer.fill(0.0)
+            self.timer.wind(frame_count)
+        else:
+            #print(self.notes)
+            for i in range(frame_count):
+                output = 0.0
 
-                    #self.buffer[i] = self.amplitude * np.sin(2 * np.pi * self.t * self.freq / self.frame_rate)
-                    #self.t += 1
+                # Traverse by index with while loop to be able to remove note while traversing
+                j = 0
+                while j < len(self.notes):
+                    note = self.notes[j]
+                    amp = self.env(note, self.timer.now(), self.amplitude)
 
-        return (self.buffer, pyaudio.paContinue)
+                    if amp == 0.0:
+                        del self.notes[j]
+                    else:
+                        print(amp)
+                        output += self.osc(note, self.timer.now(), amp)
+                        j += 1
+                        
+
+                self.buffer[i] = output
+                self.timer.tick()
+
+        return self.buffer, pyaudio.paContinue
 
     def play(self):
         self.ostream.start_stream()
