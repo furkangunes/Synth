@@ -47,7 +47,6 @@ class Player(pyaudio.PyAudio):
             self.buffer.fill(0.0)
             self.timer.wind(frame_count)
         else:
-            #print(self.notes)
             for i in range(frame_count):
                 output = 0.0
 
@@ -65,13 +64,6 @@ class Player(pyaudio.PyAudio):
 
                 self.buffer[i] = output
                 self.timer.tick()
-
-            i = 0
-            while i < len(self.notes):
-                if not self.notes[i].is_active:
-                    del self.notes[i]
-                else:
-                    i += 1
 
         return self.buffer, pyaudio.paContinue
 
