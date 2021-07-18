@@ -55,13 +55,23 @@ class Osc():
             return self.amplitude * freq * np.sin(2.0 * np.pi * self.freq * time)
 
     def __init__(self):
-        self.active_function: self.sin_wave
+        self.active_function = self.sin_wave
         self.vibrato = self.Vibrato()
 
         # Add harmonics to output when enabled. A new wave with 2 ^ harmonic frequency will be added
         # E.g. When harmonic = 1 and A4 is played, A4 + 0.5 * A5 will be returned (0.5 is hardcoded and freq(A5) = freq(A4) * 2 ^ 1)
         self.harmonic = 0
         self.noise_enabled = False
+
+    def change_active_func(self, wave_form_name):
+        if wave_form_name == "sqr":
+            self.active_function = self.sqr_wave
+        elif wave_form_name == "tri":
+            self.active_function = self.tri_wave
+        elif wave_form_name == "saw":
+            self.active_function = self.saw_wave
+        else:
+            self.active_function = self.sin_wave
 
     def _get_sin(self, freq, time):
         # Returns sin wave value at given time with vibration when enabled

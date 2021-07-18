@@ -32,15 +32,17 @@ class Player(pyaudio.PyAudio):
 
         self.timer = Timer(frame_rate)
 
-        self.osc = Osc()
-        self.osc.active_function = self.osc.sin_wave
-
         self.env = Env(amplitude=self.amplitude)
+        self.osc = Osc()
+        #self.osc.active_function = self.osc.sin_wave
 
         self.frame_rate = frame_rate
         self.ostream = pyaudio.Stream(self, rate=frame_rate, frames_per_buffer=frames_per_buffer, channels=channels, format=format, output=output, stream_callback=self.callback)
 
         self.should_stop = False
+
+    def change_wave_form(self, wave_form_name):
+        self.osc.change_active_func(wave_form_name)
 
     # TODO: Does not work with Stereo currently
     def callback(self, in_data, frame_count, time_info, status):

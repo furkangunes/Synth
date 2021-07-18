@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
+from os.path import join as path_join
 from math import inf
-
+# TODO: UNLOCK SET BINDINGS AND PLAYER SHOULD STOP ON EXIT
 from note import Note, NoteFactory
 from player import Player
 
@@ -10,8 +11,12 @@ class Frame(tk.Frame):
         tk.Frame.__init__(master=master, cnf=cnf, **kwargs)
 
 GIT_LINK = "https://github.com/furkangunes/Synth"
+
 MAIN_NOTE_COLOR = "orange"
 SHARP_NOTE_COLOR = "black"
+
+BUTTON_ENABLED_COLOR = "white"
+BUTTON_DISABLED_COLOR = "grey"
 
 class Gui(tk.Tk):
     def __init__(self, player: Player, *args, **kwargs):
@@ -23,9 +28,20 @@ class Gui(tk.Tk):
         self.key_dict = self.get_key_dict()
         self.button_dict = dict.fromkeys(self.key_dict.keys())
 
-        self.header = tk.Frame(master=self, width=200, height=100)
-        self.keyboard_frame = tk.Frame(master=self, width=200, height=100)
-        self.footer = tk.Frame(master=self, width=200, height=100, bg="blue")
+        self.header = tk.Frame(master=self)#, width=200, height=100)
+        self.keyboard_frame = tk.Frame(master=self)#, width=200, height=100)
+        self.footer = tk.Frame(master=self)#, width=200, height=100, bg="blue")
+        self.options_frame = tk.Frame(master=self)#, width=200)
+        self.wave_buttons = {}
+
+        self.active_wave_form = "sin"
+
+        self.icons = {
+            "sin": tk.PhotoImage(file=path_join("icons", "sin_wave_icon.png")).subsample(3, 3),
+            "sqr": tk.PhotoImage(file=path_join("icons", "square_wave_icon.png")).subsample(3, 3),
+            "tri": tk.PhotoImage(file=path_join("icons", "triangle_wave_icon.png")).subsample(3, 3),
+            "saw": tk.PhotoImage(file=path_join("icons", "sawtooth_wave_icon.png")).subsample(3, 3)
+        }
 
         self.detail = "Press keys to play sound"
         self.detail_label: tk.Label
@@ -52,6 +68,53 @@ class Gui(tk.Tk):
         self.detail_label.grid(row=1, sticky="NSEW")
 
         tk.Label(master=self.footer, text=GIT_LINK, bg="red").grid(row=0)
+
+        self.configure_options_frame()
+
+    def configure_options_frame(self):
+        self.options_frame.grid(row=1, column=1)
+        
+        # Wave form selection buttons
+        # Sin wave
+        self.wave_buttons["sin"] = tk.Button(
+            master=self.options_frame,
+            image=self.icons["sin"],
+            command=lambda: self.change_wave_form("sin"),
+            state=tk.DISABLED, # Initial wave form
+            bg=BUTTON_DISABLED_COLOR # Initial wave form
+        )
+
+        self.wave_buttons["sqr"] = tk.Button(
+            master=self.options_frame,
+            image=self.icons["sqr"],
+            command=lambda: self.change_wave_form("sqr"),
+            state=tk.NORMAL,
+            bg=BUTTON_ENABLED_COLOR
+        )
+
+        self.wave_buttons["tri"] = tk.Button(
+            master=self.options_frame,
+            image=self.icons["tri"],
+            command=lambda: self.change_wave_form("tri"),
+            state=tk.NORMAL,
+            bg=BUTTON_ENABLED_COLOR
+        )
+
+        self.wave_buttons["saw"] =  tk.Button(
+            master=self.options_frame,
+            image=self.icons["saw"],
+            command=lambda: self.change_wave_form("saw"),
+            state=tk.NORMAL,
+            bg=BUTTON_ENABLED_COLOR
+        )
+
+        self.wave_buttons["sin"].grid(row=0, column=0)
+        self.wave_buttons["sqr"].grid(row=0, column=1)
+        self.wave_buttons["tri"].grid(row=1, column=0)
+        self.wave_buttons["saw"].grid(row=1, column=1)
+
+
+        self.update()
 
     def configure_keyboard_frame(self):
         button_width: int
@@ -169,6 +232,21 @@ class Gui(tk.Tk):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             self.player.should_stop = True
             self.destroy()
+
+    def change_wave_form(self, wave_form_name):
+        # Enable old button form back
+        active_button = self.wave_buttons[self.active_wave_form]
+        active_button["state"] = tk.NORMAL
+        active_button["bg"] = BUTTON_ENABLED_COLOR
+
+        # Choose and disabled new button form
+        self.active_wave_form = wave_form_name
+        active_button = self.wave_buttons[self.active_wave_form]
+        active_button["state"] = tk.DISABLED
+        active_button["bg"] = BUTTON_DISABLED_COLOR
+        
+        # Change wave form on player
+        self.player.change_wave_form(self.active_wave_form)
 
     def set_bindings(self, octave_number=4):
         self.bind("<Key>", self.on_press)
