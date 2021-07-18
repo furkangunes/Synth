@@ -74,6 +74,7 @@ class Osc():
 
     def saw_wave(self, note, time, amplitude):
         # Returns a saw tooth shaped cummulatively sampled sin waves
+        # Cannot use Vibrato for now
         if note.freq == 0.0:
             return 0.0
 

@@ -42,6 +42,7 @@ class Player(pyaudio.PyAudio):
 
         self.should_stop = False
 
+    # TODO: Does not work with Stereo currently
     def callback(self, in_data, frame_count, time_info, status):
         if len(self.notes) == 0:
             self.buffer.fill(0.0)
