@@ -42,20 +42,36 @@ class Osc():
     An oscillator to get more interesting sin waves
     """
 
+    @dataclass
+    class Vibrato:
+        amplitude = 0.01
+        freq = 5
+        is_active = False
+
+        def __call__(self, freq, time): # freq is the carrier signal frequency
+            if not self.is_active:
+                return 0.0
+            return self.amplitude * freq * np.sin(2.0 * np.pi * self.freq * time)
+
     def __init__(self):
         self.active_function: self.sin_wave
+        self.vibrato = self.Vibrato()
+        #self.vibrato.is_active = True
+
+    def _get_sin(self, freq, time):
+        return np.sin(2.0 * np.pi * freq * time + self.vibrato(freq, time))
 
     def sin_wave(self, note, time, amplitude):
         # Return original sin wave
-        return amplitude * np.sin(2.0 * np.pi * note.freq * time)
+        return amplitude * self._get_sin(note.freq, time)
 
     def sqr_wave(self, note, time, amplitude):
         # Return square shaped sin wave, which only alters between -1 and 1
-        return amplitude * np.sign(np.sin(2.0 * np.pi * note.freq * time))
+        return amplitude * np.sign(self._get_sin(note.freq, time))
 
     def tri_wave(self, note, time, amplitude):
         # Return triangular shaped sin wave, which forms a triangle over sin wave by its peak values
-        return 2.0 * amplitude / np.pi * np.arcsin(np.sin(2.0 * np.pi * note.freq * time))
+        return 2.0 * amplitude / np.pi * np.arcsin(self._get_sin(note.freq, time))
 
     def saw_wave(self, note, time, amplitude):
         # Returns a saw tooth shaped cummulatively sampled sin waves

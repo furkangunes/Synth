@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from math import inf
 
 from note import Note, NoteFactory
 from player import Player
@@ -129,6 +130,7 @@ class Gui(tk.Tk):
 
         if note not in self.player.notes:
             note.press_time = self.player.timer.now()
+            note.release_time = inf
             note.is_active = True
             self.player.notes.append(self.keyboard[note_name])
                 
