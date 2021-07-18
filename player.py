@@ -67,7 +67,7 @@ class Player(pyaudio.PyAudio):
                 amps = [amp / len(amps) for amp in amps]
 
                 for note in self.notes:
-                    output += self.osc(note, self.timer.now(), amps[self.notes.index(note)])
+                    output += self.osc(note.freq, self.timer.now(), amps[self.notes.index(note)])
 
                 self.buffer[i] = output
                 self.timer.tick()

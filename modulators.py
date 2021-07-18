@@ -2,6 +2,7 @@ import numpy as np
 from dataclasses import dataclass
 from time import time
 from math import inf
+from random import random
 
 from note import Note
 
@@ -57,29 +58,50 @@ class Osc():
         self.active_function: self.sin_wave
         self.vibrato = self.Vibrato()
 
+        # Add harmonics to output when enabled. A new wave with 2 ^ harmonic frequency will be added
+        # E.g. When harmonic = 1 and A4 is played, A4 + 0.5 * A5 will be returned (0.5 is hardcoded and freq(A5) = freq(A4) * 2 ^ 1)
+        self.harmonic = 0
+        self.noise_enabled = False
+
     def _get_sin(self, freq, time):
+        # Returns sin wave value at given time with vibration when enabled
         return np.sin(2.0 * np.pi * freq * time + self.vibrato(freq, time))
 
-    def sin_wave(self, note, time, amplitude):
+    def sin_wave(self, freq, time, amplitude):
         # Return original sin wave
-        return amplitude * self._get_sin(note.freq, time)
+        return amplitude * self._get_sin(freq, time)
 
-    def sqr_wave(self, note, time, amplitude):
+    def sqr_wave(self, freq, time, amplitude):
         # Return square shaped sin wave, which only alters between -1 and 1
-        return amplitude * np.sign(self._get_sin(note.freq, time))
+        return amplitude * np.sign(self._get_sin(freq, time))
 
-    def tri_wave(self, note, time, amplitude):
+    def tri_wave(self, freq, time, amplitude):
         # Return triangular shaped sin wave, which forms a triangle over sin wave by its peak values
-        return 2.0 * amplitude / np.pi * np.arcsin(self._get_sin(note.freq, time))
+        return 2.0 * amplitude / np.pi * np.arcsin(self._get_sin(freq, time))
 
-    def saw_wave(self, note, time, amplitude):
+    def saw_wave(self, freq, time, amplitude):
         # Returns a saw tooth shaped cummulatively sampled sin waves
         # Cannot use Vibrato for now
-        if note.freq == 0.0:
+        if freq == 0.0:
             return 0.0
 
-        return 2.0 * amplitude / np.pi * (note.freq * np.pi * (time % (1.0 / note.freq)) - np.pi / 2.0)
+        return 2.0 * amplitude / np.pi * (freq * np.pi * (time % (1.0 / freq)) - np.pi / 2.0)
 
-    def __call__(self, note, time, amplitude):
+    def noise(self):
+        # Creates noise with random values between -1, 1
+        # Might be useful to create realistic sounds sometimes
+
+        return -1.0 + random() * 2
+
+    def __call__(self, freq, time, amplitude):
         # Call object directly with phase and amplitude (osc = Osc(); osc(phase, amplitude))
-        return self.active_function(note, time, amplitude)
+        
+        output = self.active_function(freq, time, amplitude)
+
+        if self.harmonic != 0:
+            output += 0.5 * self.active_function(freq * 2.0 ** self.harmonic, time, amplitude)
+
+        if self.noise_enabled:
+            output += 0.05 * amplitude * self.noise()
+
+        return output
