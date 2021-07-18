@@ -43,6 +43,11 @@ class Player(pyaudio.PyAudio):
 
     def change_wave_form(self, wave_form_name):
         self.osc.change_active_func(wave_form_name)
+    
+    def toggle_vibrato(self):
+        # Returns its state
+        self.osc.vibrato.is_active = not self.osc.vibrato.is_active
+        return self.osc.vibrato.is_active
 
     # TODO: Does not work with Stereo currently
     def callback(self, in_data, frame_count, time_info, status):

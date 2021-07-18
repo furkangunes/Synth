@@ -12,6 +12,8 @@ class Frame(tk.Frame):
 
 GIT_LINK = "https://github.com/furkangunes/Synth"
 
+BACKGROUND_COLOR = "white"
+
 MAIN_NOTE_COLOR = "orange"
 SHARP_NOTE_COLOR = "black"
 
@@ -21,6 +23,7 @@ BUTTON_DISABLED_COLOR = "grey"
 class Gui(tk.Tk):
     def __init__(self, player: Player, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
+        self.config(bg=BACKGROUND_COLOR)
 
         self.player = player
         self.octave_number = 4
@@ -31,8 +34,9 @@ class Gui(tk.Tk):
         self.header = tk.Frame(master=self)#, width=200, height=100)
         self.keyboard_frame = tk.Frame(master=self)#, width=200, height=100)
         self.footer = tk.Frame(master=self)#, width=200, height=100, bg="blue")
-        self.options_frame = tk.Frame(master=self)#, width=200)
+        self.options_frame = tk.Frame(master=self, bg=BACKGROUND_COLOR)#, width=200)
         self.wave_buttons = {}
+        self.vibrato_toggle: tk.Button
 
         self.active_wave_form = "sin"
 
@@ -40,7 +44,9 @@ class Gui(tk.Tk):
             "sin": tk.PhotoImage(file=path_join("icons", "sin_wave_icon.png")).subsample(3, 3),
             "sqr": tk.PhotoImage(file=path_join("icons", "square_wave_icon.png")).subsample(3, 3),
             "tri": tk.PhotoImage(file=path_join("icons", "triangle_wave_icon.png")).subsample(3, 3),
-            "saw": tk.PhotoImage(file=path_join("icons", "sawtooth_wave_icon.png")).subsample(3, 3)
+            "saw": tk.PhotoImage(file=path_join("icons", "sawtooth_wave_icon.png")).subsample(3, 3),
+            "on_toggle": tk.PhotoImage(file=path_join("icons", "on_toggle_icon.png")),
+            "off_toggle": tk.PhotoImage(file=path_join("icons", "off_toggle_icon.png"))
         }
 
         self.detail = "Press keys to play sound"
@@ -69,10 +75,10 @@ class Gui(tk.Tk):
 
         tk.Label(master=self.footer, text=GIT_LINK, bg="red").grid(row=0)
 
+        self.options_frame.grid(row=1, column=1)
         self.configure_options_frame()
 
     def configure_options_frame(self):
-        self.options_frame.grid(row=1, column=1)
         
         # Wave form selection buttons
         # Sin wave
@@ -108,10 +114,26 @@ class Gui(tk.Tk):
             bg=BUTTON_ENABLED_COLOR
         )
 
-        self.wave_buttons["sin"].grid(row=0, column=0)
-        self.wave_buttons["sqr"].grid(row=0, column=1)
-        self.wave_buttons["tri"].grid(row=1, column=0)
-        self.wave_buttons["saw"].grid(row=1, column=1)
+        tk.Label(master=self.options_frame, text="Vibrato", bg=BACKGROUND_COLOR).grid(row=0, column=0)
+
+        self.vibrato_toggle = tk.Button(
+            master=self.options_frame,
+            image=self.icons["off_toggle"],
+            command=self.toggle_vibrato,
+            relief=tk.SUNKEN,
+            highlightthickness=0,
+            bd=0
+        )
+
+        self.vibrato_toggle.grid(row=0, column=1)
+
+        # Dummy frame for padding in grid
+        tk.Frame(master=self.options_frame, height=50).grid(row=1)
+
+        self.wave_buttons["sin"].grid(row=2, column=0)
+        self.wave_buttons["sqr"].grid(row=2, column=1)
+        self.wave_buttons["tri"].grid(row=3, column=0)
+        self.wave_buttons["saw"].grid(row=3, column=1)
 
 
         self.update()
@@ -247,6 +269,9 @@ class Gui(tk.Tk):
         
         # Change wave form on player
         self.player.change_wave_form(self.active_wave_form)
+
+    def toggle_vibrato(self):
+        self.vibrato_toggle.config(image=self.icons["on_toggle" if self.player.toggle_vibrato() else "off_toggle"])
 
     def set_bindings(self, octave_number=4):
         self.bind("<Key>", self.on_press)
