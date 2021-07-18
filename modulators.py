@@ -10,12 +10,11 @@ class Env:
     Envelope to get better sound experience, mimic real instruments maybe
     """
 
-    def __init__(self, step_size, amplitude):
-        # TODO: Adjust timings accourding to player timer
-        self.attack_time = 10000 * step_size
-        self.decay_time = 10000 * step_size
-        self.sustain_amplitude = amplitude * 0.8
-        self.release_time = 100 * step_size
+    def __init__(self, amplitude):
+        self.attack_time = 0.1 # sec
+        self.decay_time = 0.01 # sec
+        self.sustain_amplitude = amplitude * 0.9
+        self.release_time = 0.2 # sec
 
     def _on_press_amp(self, note: Note, time, amplitude):
         if time < note.press_time + self.attack_time:

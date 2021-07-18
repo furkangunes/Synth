@@ -26,7 +26,7 @@ class Player(pyaudio.PyAudio):
     def __init__(self, *, frames_per_buffer=1024, frame_rate=44100, channels=1, format=pyaudio.paFloat32, output=True):
         pyaudio.PyAudio.__init__(self)
         self.buffer = np.zeros((frames_per_buffer, channels), dtype=np.float32)
-        self.amplitude = 1.0
+        self.amplitude = 0.6
 
         self.notes = []
 
@@ -35,7 +35,7 @@ class Player(pyaudio.PyAudio):
         self.osc = Osc()
         self.osc.active_function = self.osc.sin_wave
 
-        self.env = Env(step_size=self.timer.step_size, amplitude=0.5)
+        self.env = Env(amplitude=self.amplitude)
 
         self.frame_rate = frame_rate
         self.ostream = pyaudio.Stream(self, rate=frame_rate, frames_per_buffer=frames_per_buffer, channels=channels, format=format, output=output, stream_callback=self.callback)
