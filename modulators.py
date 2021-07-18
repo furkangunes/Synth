@@ -11,10 +11,10 @@ class Env:
     """
 
     def __init__(self, amplitude):
-        self.attack_time = 0.1 # sec
+        self.attack_time = 0.01 # sec
         self.decay_time = 0.01 # sec
         self.sustain_amplitude = amplitude * 0.9
-        self.release_time = 0.2 # sec
+        self.release_time = 0.01 # sec
 
     def _on_press_amp(self, note: Note, time, amplitude):
         if time < note.press_time + self.attack_time:
@@ -44,8 +44,8 @@ class Osc():
 
     @dataclass
     class Vibrato:
-        amplitude = 0.01
-        freq = 5
+        amplitude = 0.001
+        freq = 5.0
         is_active = False
 
         def __call__(self, freq, time): # freq is the carrier signal frequency
@@ -56,7 +56,6 @@ class Osc():
     def __init__(self):
         self.active_function: self.sin_wave
         self.vibrato = self.Vibrato()
-        #self.vibrato.is_active = True
 
     def _get_sin(self, freq, time):
         return np.sin(2.0 * np.pi * freq * time + self.vibrato(freq, time))
