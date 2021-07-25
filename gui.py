@@ -27,10 +27,10 @@ class Gui(tk.Tk):
         self.key_dict = self.get_key_dict()
         self.button_dict = dict.fromkeys(self.key_dict.keys())
 
-        self.header = tk.Frame(master=self)#, width=200, height=100)
-        self.keyboard_frame = tk.Frame(master=self)#, width=200, height=100)
-        self.footer = tk.Frame(master=self)#, width=200, height=100, bg="blue")
-        self.options_frame = tk.Frame(master=self, bg=BACKGROUND_COLOR)#, width=200)
+        self.header = tk.Frame(master=self)
+        self.keyboard_frame = tk.Frame(master=self)
+        self.footer = tk.Frame(master=self, bg=BACKGROUND_COLOR)
+        self.options_frame = tk.Frame(master=self, bg=BACKGROUND_COLOR)
         self.wave_buttons = {}
         self.vibrato_toggle: tk.Button
         self.noise_toggle: tk.Button
@@ -101,7 +101,7 @@ class Gui(tk.Tk):
         )
 
         self.octave_shift_left_button.grid(row=0, column=0)
-        tk.Label(master=self.footer, text="Shift Keyboard").grid(row=0, column=1)
+        tk.Label(master=self.footer, text="Shift Keyboard", bg=BACKGROUND_COLOR).grid(row=0, column=1)
         self.octave_shift_right_button.grid(row=0, column=2)
 
         tk.Label(master=self.footer, text=GIT_LINK, bg="red").grid(row=1)
@@ -269,14 +269,6 @@ class Gui(tk.Tk):
             #note.is_active = False
 
     def on_press(self, key):
-        if key.keysym == "Left":
-            self.shift_keyboard(to_left=True)
-            return
-        
-        if key.keysym == "Right":
-            self.shift_keyboard(to_left=False)
-            return
-
         # TODO: It keeps activating note on key hold or, activate note appends and envelope removes immediately
         key_name = key.char.lower()
 
@@ -328,5 +320,14 @@ class Gui(tk.Tk):
         self.noise_toggle.config(image=self.icons["on_toggle" if self.player.toggle_noise() else "off_toggle"])
 
     def set_bindings(self, octave_number=4):
+        self.bind("<Key-Left>", lambda _: self.shift_keyboard(to_left=True))
+        self.bind("<Key-Right>", lambda _: self.shift_keyboard(to_left=False))
+
+        self.bind("<Control-v>", lambda _: self.toggle_vibrato())
+        self.bind("<Control-V>", lambda _: self.toggle_vibrato())
+
+        self.bind("<Control-n>", lambda _: self.toggle_noise())
+        self.bind("<Control-N>", lambda _: self.toggle_noise())
+
         self.bind("<Key>", self.on_press)
         self.bind("<KeyRelease>", self.on_release)
