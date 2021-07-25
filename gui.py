@@ -2,13 +2,9 @@ import tkinter as tk
 from tkinter import messagebox
 from os.path import join as path_join
 from math import inf
-# TODO: UNLOCK SET BINDINGS AND PLAYER SHOULD STOP ON EXIT
+
 from note import Note, NoteFactory
 from player import Player
-
-class Frame(tk.Frame):
-    def __init__(self, master=None, cnf={}, **kwargs):
-        tk.Frame.__init__(master=master, cnf=cnf, **kwargs)
 
 GIT_LINK = "https://github.com/furkangunes/Synth"
 
@@ -37,17 +33,25 @@ class Gui(tk.Tk):
         self.options_frame = tk.Frame(master=self, bg=BACKGROUND_COLOR)#, width=200)
         self.wave_buttons = {}
         self.vibrato_toggle: tk.Button
+        self.noise_toggle: tk.Button
+        self.octave_shift_left_button: tk.Button
+        self.octave_shift_right_button: tk.Button
 
         self.active_wave_form = "sin"
 
-        self.icons = {
-            "sin": tk.PhotoImage(file=path_join("icons", "sin_wave_icon.png")).subsample(3, 3),
-            "sqr": tk.PhotoImage(file=path_join("icons", "square_wave_icon.png")).subsample(3, 3),
-            "tri": tk.PhotoImage(file=path_join("icons", "triangle_wave_icon.png")).subsample(3, 3),
-            "saw": tk.PhotoImage(file=path_join("icons", "sawtooth_wave_icon.png")).subsample(3, 3),
-            "on_toggle": tk.PhotoImage(file=path_join("icons", "on_toggle_icon.png")),
-            "off_toggle": tk.PhotoImage(file=path_join("icons", "off_toggle_icon.png"))
-        }
+        try:
+            self.icons = {
+                "sin": tk.PhotoImage(file=path_join("icons", "sin_wave_icon.png")).subsample(3, 3),
+                "sqr": tk.PhotoImage(file=path_join("icons", "square_wave_icon.png")).subsample(3, 3),
+                "tri": tk.PhotoImage(file=path_join("icons", "triangle_wave_icon.png")).subsample(3, 3),
+                "saw": tk.PhotoImage(file=path_join("icons", "sawtooth_wave_icon.png")).subsample(3, 3),
+                "on_toggle": tk.PhotoImage(file=path_join("icons", "on_toggle_icon.png")),
+                "off_toggle": tk.PhotoImage(file=path_join("icons", "off_toggle_icon.png")),
+                "left_arrow": tk.PhotoImage(file=path_join("icons", "left_arrow_icon.png")),
+                "right_arrow": tk.PhotoImage(file=path_join("icons", "right_arrow_icon.png"))
+            }
+        except Exception:
+            self.player.should_stop = True
 
         self.detail = "Press keys to play sound"
         self.detail_label: tk.Label
@@ -59,6 +63,17 @@ class Gui(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
         self.resizable(False, False)
+
+    def shift_keyboard(self, to_left):
+        if (self.octave_number < 2 and to_left) or (self.octave_number > 6 and not to_left):
+            return
+
+        self.octave_number = self.octave_number - 1 if to_left else self.octave_number + 1
+        self.keyboard = NoteFactory.create_keyboard(octave_number=self.octave_number, key_count=20)
+        self.key_dict = self.get_key_dict()
+        
+        for key, button_tuple in zip(self.key_dict.keys(), self.button_dict.values()):
+            button_tuple["button"].config(text=self.key_dict[key] + "\n" * 5 + key.upper())
 
     def configure_frames(self):
         self.title("Synthesizer")
@@ -73,7 +88,23 @@ class Gui(tk.Tk):
         self.detail_label = tk.Label(master=self.header, text=self.detail)
         self.detail_label.grid(row=1, sticky="NSEW")
 
-        tk.Label(master=self.footer, text=GIT_LINK, bg="red").grid(row=0)
+        self.octave_shift_left_button = tk.Button(
+            master=self.footer,
+            image=self.icons["left_arrow"],
+            command=lambda: self.shift_keyboard(to_left=True)
+        )
+
+        self.octave_shift_right_button = tk.Button(
+            master=self.footer,
+            image=self.icons["right_arrow"],
+            command=lambda: self.shift_keyboard(to_left=False)
+        )
+
+        self.octave_shift_left_button.grid(row=0, column=0)
+        tk.Label(master=self.footer, text="Shift Keyboard").grid(row=0, column=1)
+        self.octave_shift_right_button.grid(row=0, column=2)
+
+        tk.Label(master=self.footer, text=GIT_LINK, bg="red").grid(row=1)
 
         self.options_frame.grid(row=1, column=1)
         self.configure_options_frame()
@@ -125,15 +156,27 @@ class Gui(tk.Tk):
             bd=0
         )
 
+        tk.Label(master=self.options_frame, text="Noise", bg=BACKGROUND_COLOR).grid(row=1, column=0)
+
+        self.noise_toggle = tk.Button(
+            master=self.options_frame,
+            image=self.icons["off_toggle"],
+            command=self.toggle_noise,
+            relief=tk.SUNKEN,
+            highlightthickness=0,
+            bd=0
+        )
+
         self.vibrato_toggle.grid(row=0, column=1)
+        self.noise_toggle.grid(row=1, column=1)
 
         # Dummy frame for padding in grid
         tk.Frame(master=self.options_frame, height=50).grid(row=1)
 
-        self.wave_buttons["sin"].grid(row=2, column=0)
-        self.wave_buttons["sqr"].grid(row=2, column=1)
-        self.wave_buttons["tri"].grid(row=3, column=0)
-        self.wave_buttons["saw"].grid(row=3, column=1)
+        self.wave_buttons["sin"].grid(row=3, column=0)
+        self.wave_buttons["sqr"].grid(row=3, column=1)
+        self.wave_buttons["tri"].grid(row=4, column=0)
+        self.wave_buttons["saw"].grid(row=4, column=1)
 
 
         self.update()
@@ -226,6 +269,14 @@ class Gui(tk.Tk):
             #note.is_active = False
 
     def on_press(self, key):
+        if key.keysym == "Left":
+            self.shift_keyboard(to_left=True)
+            return
+        
+        if key.keysym == "Right":
+            self.shift_keyboard(to_left=False)
+            return
+
         # TODO: It keeps activating note on key hold or, activate note appends and envelope removes immediately
         key_name = key.char.lower()
 
@@ -272,6 +323,9 @@ class Gui(tk.Tk):
 
     def toggle_vibrato(self):
         self.vibrato_toggle.config(image=self.icons["on_toggle" if self.player.toggle_vibrato() else "off_toggle"])
+
+    def toggle_noise(self):
+        self.noise_toggle.config(image=self.icons["on_toggle" if self.player.toggle_noise() else "off_toggle"])
 
     def set_bindings(self, octave_number=4):
         self.bind("<Key>", self.on_press)

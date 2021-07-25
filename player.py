@@ -49,6 +49,11 @@ class Player(pyaudio.PyAudio):
         self.osc.vibrato.is_active = not self.osc.vibrato.is_active
         return self.osc.vibrato.is_active
 
+    def toggle_noise(self):
+        # Returns its state
+        self.osc.noise_enabled = not self.osc.noise_enabled
+        return self.osc.noise_enabled
+
     # TODO: Does not work with Stereo currently
     def callback(self, in_data, frame_count, time_info, status):
         if len(self.notes) == 0:
