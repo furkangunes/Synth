@@ -16,6 +16,25 @@ SHARP_NOTE_COLOR = "black"
 BUTTON_ENABLED_COLOR = "white"
 BUTTON_DISABLED_COLOR = "grey"
 
+HELP_TEXT = """
+Play sound by pressing on your keyboards denoted on the keys in your screen.
+
+You can select a different wave form by clicking the buttons on the right, each of which represented by their wave form symbols.
+
+Vibrato makes the sound a little vibrating to get a different sound experience
+
+Noise can be used to get a different type of instrumental sound, might be good with square wave.
+
+You can slide the keyboard to left or right by pressing to the arrows below.
+
+Shortcuts:
+    Left Arrow: Shift keyboard to left
+    Right Arrow: Shift keyboard to right
+        
+    Ctrl+v: Toggle Vibrato
+    Ctrl+n: Toggle Noise
+"""
+
 class Gui(tk.Tk):
     def __init__(self, player: Player, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -31,11 +50,15 @@ class Gui(tk.Tk):
         self.keyboard_frame = tk.Frame(master=self)
         self.footer = tk.Frame(master=self, bg=BACKGROUND_COLOR)
         self.options_frame = tk.Frame(master=self, bg=BACKGROUND_COLOR)
+
         self.wave_buttons = {}
+        
         self.vibrato_toggle: tk.Button
         self.noise_toggle: tk.Button
         self.octave_shift_left_button: tk.Button
         self.octave_shift_right_button: tk.Button
+
+        self.help_button: tk.Button
 
         self.active_wave_form = "sin"
 
@@ -48,7 +71,8 @@ class Gui(tk.Tk):
                 "on_toggle": tk.PhotoImage(file=path_join("icons", "on_toggle_icon.png")),
                 "off_toggle": tk.PhotoImage(file=path_join("icons", "off_toggle_icon.png")),
                 "left_arrow": tk.PhotoImage(file=path_join("icons", "left_arrow_icon.png")),
-                "right_arrow": tk.PhotoImage(file=path_join("icons", "right_arrow_icon.png"))
+                "right_arrow": tk.PhotoImage(file=path_join("icons", "right_arrow_icon.png")),
+                "help": tk.PhotoImage(file=path_join("icons", "help_icon.png"))
             }
         except Exception:
             self.player.should_stop = True
@@ -85,6 +109,7 @@ class Gui(tk.Tk):
         self.update()
 
         tk.Label(master=self.header, text="Synthesizer", bg="red").grid(row=0, sticky="NSEW")
+
         self.detail_label = tk.Label(master=self.header, text=self.detail)
         self.detail_label.grid(row=1, sticky="NSEW")
 
@@ -110,7 +135,6 @@ class Gui(tk.Tk):
         self.configure_options_frame()
 
     def configure_options_frame(self):
-        
         # Wave form selection buttons
         # Sin wave
         self.wave_buttons["sin"] = tk.Button(
@@ -144,8 +168,19 @@ class Gui(tk.Tk):
             state=tk.NORMAL,
             bg=BUTTON_ENABLED_COLOR
         )
+        
+        self.help_button = tk.Button(
+            master=self.options_frame,
+            image=self.icons["help"],
+            command=lambda: messagebox.showinfo(title="Help", message=HELP_TEXT)
+        )
 
-        tk.Label(master=self.options_frame, text="Vibrato", bg=BACKGROUND_COLOR).grid(row=0, column=0)
+        self.help_button.grid(row=0, column=1)
+
+        # Dummy frame for padding in grid
+        tk.Frame(master=self.options_frame, height=20).grid(row=1)
+
+        tk.Label(master=self.options_frame, text="Vibrato", bg=BACKGROUND_COLOR).grid(row=2, column=0)
 
         self.vibrato_toggle = tk.Button(
             master=self.options_frame,
@@ -156,7 +191,7 @@ class Gui(tk.Tk):
             bd=0
         )
 
-        tk.Label(master=self.options_frame, text="Noise", bg=BACKGROUND_COLOR).grid(row=1, column=0)
+        tk.Label(master=self.options_frame, text="Noise", bg=BACKGROUND_COLOR).grid(row=3, column=0)
 
         self.noise_toggle = tk.Button(
             master=self.options_frame,
@@ -167,16 +202,16 @@ class Gui(tk.Tk):
             bd=0
         )
 
-        self.vibrato_toggle.grid(row=0, column=1)
-        self.noise_toggle.grid(row=1, column=1)
+        self.vibrato_toggle.grid(row=2, column=1)
+        self.noise_toggle.grid(row=3, column=1)
 
         # Dummy frame for padding in grid
-        tk.Frame(master=self.options_frame, height=50).grid(row=1)
+        tk.Frame(master=self.options_frame, height=20).grid(row=4)
 
-        self.wave_buttons["sin"].grid(row=3, column=0)
-        self.wave_buttons["sqr"].grid(row=3, column=1)
-        self.wave_buttons["tri"].grid(row=4, column=0)
-        self.wave_buttons["saw"].grid(row=4, column=1)
+        self.wave_buttons["sin"].grid(row=5, column=0)
+        self.wave_buttons["sqr"].grid(row=5, column=1)
+        self.wave_buttons["tri"].grid(row=6, column=0)
+        self.wave_buttons["saw"].grid(row=6, column=1)
 
 
         self.update()
