@@ -58,8 +58,6 @@ class Gui(tk.Tk):
         self.octave_shift_left_button: tk.Button
         self.octave_shift_right_button: tk.Button
 
-        self.help_button: tk.Button
-
         self.active_wave_form = "sin"
 
         try:
@@ -89,7 +87,7 @@ class Gui(tk.Tk):
         self.resizable(False, False)
 
     def shift_keyboard(self, to_left):
-        if (self.octave_number < 2 and to_left) or (self.octave_number > 6 and not to_left):
+        if (self.octave_number < 1 and to_left) or (self.octave_number > 6 and not to_left):
             return
 
         self.octave_number = self.octave_number - 1 if to_left else self.octave_number + 1
@@ -126,8 +124,7 @@ class Gui(tk.Tk):
         )
 
         self.octave_shift_left_button.grid(row=0, column=0)
-        tk.Label(master=self.footer, text="Shift Keyboard", bg=BACKGROUND_COLOR).grid(row=0, column=1)
-        self.octave_shift_right_button.grid(row=0, column=2)
+        self.octave_shift_right_button.grid(row=0, column=1)
 
         tk.Label(master=self.footer, text=GIT_LINK, bg="red").grid(row=1)
 
@@ -136,7 +133,6 @@ class Gui(tk.Tk):
 
     def configure_options_frame(self):
         # Wave form selection buttons
-        # Sin wave
         self.wave_buttons["sin"] = tk.Button(
             master=self.options_frame,
             image=self.icons["sin"],
@@ -168,14 +164,13 @@ class Gui(tk.Tk):
             state=tk.NORMAL,
             bg=BUTTON_ENABLED_COLOR
         )
-        
-        self.help_button = tk.Button(
+
+        # Help button
+        tk.Button(
             master=self.options_frame,
             image=self.icons["help"],
             command=lambda: messagebox.showinfo(title="Help", message=HELP_TEXT)
-        )
-
-        self.help_button.grid(row=0, column=1)
+        ).grid(row=0, column=1)
 
         # Dummy frame for padding in grid
         tk.Frame(master=self.options_frame, height=20).grid(row=1)
@@ -308,9 +303,13 @@ class Gui(tk.Tk):
         key_name = key.char.lower()
 
         # Tk gets special chars at press but on release, so save duplicate of special char with keycode
-        if key.keysym == "??":
-            self.key_dict[key.keycode] = self.key_dict[key_name]
-            self.button_dict[key.keycode] = self.button_dict[key_name]
+        # Ignore exceptions on press "FN" key or such
+        try:
+            if key.keysym == "??":
+                self.key_dict[key.keycode] = self.key_dict[key_name]
+                self.button_dict[key.keycode] = self.button_dict[key_name]
+        except Exception:
+            pass
 
         if key_name in self.key_dict:
             self.button_dict[key_name]["button"]["bg"] = "red"
